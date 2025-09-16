@@ -1,0 +1,22 @@
+npm install react-router-dom  : This library is used for routing 
+
+<BrowserRouter>
+Think of this as the "GPS system" for your app. It:
+
+Watches the URL in the browser address bar
+Tells React which component to show based on the URL
+Handles navigation without page refreshes (Single Page Application magic!)
+
+Example: When URL changes from / to /auth, BrowserRouter notices and updates the page
+
+<Routes>
+This is like a "traffic controller" that:
+
+Contains all possible routes in your app
+Decides which route matches the current URL
+Only shows ONE matching route at a time (first match wins)
+
+
+note:--
+shadcn is just a wrapper the top of radix ui
+if you want to go with complete scratch project and you want your own style then go with radix ui but if you want predefined style for these components then you can use shadcn--
