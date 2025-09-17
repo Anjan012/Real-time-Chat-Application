@@ -3,6 +3,7 @@ import Victory from "@/assets/victory.svg";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs.jsx";
 import { Input } from "@/components/ui/input.jsx";
 import { useState } from 'react';
+import { Button } from "@/components/ui/button.jsx"
 
 export const Auth = () => {
 
@@ -11,7 +12,13 @@ export const Auth = () => {
     const [password, setPassword] = useState("");
     const [confirmPassword, setconfirmPassword] = useState("");
 
-    // const handle 
+    const handleLogin = async ()=>{
+
+    };
+
+    const handleSignup = async () =>{
+
+    }
 
     return (
         <div className="h-[100vh] w-[100wh] flex items-center justify-center">
@@ -48,6 +55,8 @@ export const Auth = () => {
                                     value={password} 
                                     onChange={(e) => setPassword(e.target.value)}>
                                 </Input>
+
+                                <Button className="rounded-full p-6" onClick={handleLogin}>Login</Button>
                             </TabsContent>
                             <TabsContent className="flex flex-col gap-5" value="signup">
                                 <Input 
@@ -71,10 +80,15 @@ export const Auth = () => {
                                     value={confirmPassword} 
                                     onChange={(e) => setconfirmPassword(e.target.value)}>
                                 </Input>
+                                <Button className="rounded-full p-6" onClick={handleSignup}>Signup</Button>
+
                             </TabsContent>
 
                         </Tabs>
                     </div>
+                </div>
+                <div className="hidden xl:flex justify-center items-center">
+                    <img src={Background} alt="background login" className="h=[700px]" />
                 </div>
             </div>
         </div>

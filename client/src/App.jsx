@@ -9,7 +9,6 @@ import { Profile } from "./pages/profile"
 const App = () => {
   return (
     <div>
-      <h1>App is working!</h1>
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth/>} />

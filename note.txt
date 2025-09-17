@@ -20,3 +20,64 @@ Only shows ONE matching route at a time (first match wins)
 note:--
 shadcn is just a wrapper the top of radix ui
 if you want to go with complete scratch project and you want your own style then go with radix ui but if you want predefined style for these components then you can use shadcn--
+
+
+ npm init --yes : yes is the default option 
+
+ installing package in the server------------------------------
+ we are installing express framework (handles requests, serves responses),
+ dotenv to read environment variables,
+ cors to communicate to client to server,
+ cookie parser to parse and get our cookies,
+ mongoose package to interact with the database,
+ bcrypt to encrypt our password,
+ jsonwebtoken package for json web tokens- like The membership card (remembers who's logged in)
+
+npm i express dotenv cors cookie-parser mongoose bcrypt jsonwebtoken
+
+in package,json in server we add "type":"module" cause - use import statement....
+
+----------------------------------------------------
+dev dependices are used in development helps developer but in production after hosted not used 
+Development tools (like nodemon) help you code but aren't needed in production. This tool will save you SO much time!
+Whenever we save our node js file application we need to restart our server side app to get the changes but but node js does automatically nodemon watches changes and automatically restart the application 
+npm install nodemon --save-dev  
+
+
+
+
+------------------------------------------
+added inside script in packgae.json 
+"scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+
+"start": "node index.js"
+
+When you run: npm start
+What it does: node index.js
+Purpose: Runs your server in production mode
+Behavior:
+
+Starts the server once
+If you make code changes, nothing happens
+You have to manually stop (Ctrl+C) and restart
+Used when deploying to production
+
+
+"dev": "nodemon index.js"
+
+When you run: npm run dev
+What it does: nodemon index.js
+Purpose: Runs your server in development mode
+Behavior:
+
+Starts the server
+Watches for file changes
+Automatically restarts when you modify code
+Perfect for development
+
+cookie-parser-------------------------------
+middleware
+getting the cookies from the frontend 
