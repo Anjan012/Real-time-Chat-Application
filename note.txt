@@ -35,7 +35,7 @@ if you want to go with complete scratch project and you want your own style then
 
 npm i express dotenv cors cookie-parser mongoose bcrypt jsonwebtoken
 
-in package,json in server we add "type":"module" cause - use import statement....
+in package.json in server we add "type":"module" cause - use import statement....
 
 ----------------------------------------------------
 dev dependices are used in development helps developer but in production after hosted not used 
@@ -81,3 +81,8 @@ Perfect for development
 cookie-parser-------------------------------
 middleware
 getting the cookies from the frontend 
+
+---------------------------------------------------
+The Model-View-Controller (MVC) framework is an architectural/design pattern that separates an application into three main logical components Model, View, and Controller. 
+
+--middleware (two: pre and post)

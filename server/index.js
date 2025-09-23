@@ -4,25 +4,30 @@ import dotenv from "dotenv"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 import mongoose from "mongoose"
+import authRoutes from "./routes/AuthRoutes"
 
 
-// congig the env
-dotenv.config(); // With this cmd all the env will be in process.env
+// congig the env (Load Environment Variables)
+dotenv.config(); // With this cmd Reads your .env file and makes all variables available in process.env
 
-const app = express();
+const app = express(); // Creating the web server
 const port = process.env.PORT || 3001; // incase of not port start server on 3001 port 
 const databaseURL = process.env.DATABASE_URL;
 
 app.use(cors({
     origin: [process.env.ORIGIN], // from where your request is going to be made can have multiple origins
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // methods that are available with this origin these are all the restAPIs method 
-    credentials:true // for enabling cookies
+    credentials:true // for enabling cookies (Allow cookies to be sent with requests)
 
 }));
+
+// Setup Middleware---------
 
 app.use(cookieParser());
 
 app.use(express.json()); // to have our body in json format
+
+app.use("/api/auth", authRoutes.js); // whenever we have a request to /api/auth it will be handled by authRoutes
 
 // Setting up our server
 const server = app.listen(port, ()=>{
