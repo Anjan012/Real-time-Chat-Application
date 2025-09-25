@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { genSalt } from "bcrypt";
+import bcrypt, { genSalt } from "bcrypt";
 
 const userSchema = new mongoose.Schema({
 
@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
 });
 
 
-// Encrypting the password before saving the user
+// Before a User document is saved in the database, this function runs. It hashes the user’s password so that plain text is never stored.
 userSchema.pre("save", async function(next){ // don't use arrow function here because we need the 'this' keyword and this keyword doesn't work with arrow functions
 
     // encrypt the password using bcrypt package

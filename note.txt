@@ -31,7 +31,7 @@ if you want to go with complete scratch project and you want your own style then
  cookie parser to parse and get our cookies,
  mongoose package to interact with the database,
  bcrypt to encrypt our password,
- jsonwebtoken package for json web tokens- like The membership card (remembers who's logged in)
+ jsonwebtoken (jwt) → library for creating and verifying JSON Web Tokens (tokens are used to “remember” if a user is logged in).
 
 npm i express dotenv cors cookie-parser mongoose bcrypt jsonwebtoken
 
@@ -86,3 +86,17 @@ getting the cookies from the frontend
 The Model-View-Controller (MVC) framework is an architectural/design pattern that separates an application into three main logical components Model, View, and Controller. 
 
 --middleware (two: pre and post)
+
+-------------------------------
+npm i axios : A JavaScript library for making HTTP requests (API calls) Using email with smart features (easier, cleaner, automatic formatting). You'll use axios in your React components to call all the APIs you're building in your Express server
+genSalt() → generates a random string (salt) to make the hash stronger.
+
+-------------------------------
+Utils and Lib Folders: 
+The utils folder contains small, reusable helper functions that perform specific tasks like formatting dates, validating emails, or generating user initials - think of it as your toolbox of pure functions that take input and return output. The lib folder contains configurations and setups for external libraries like axios API configuration, Socket.io setup, or database connections - essentially your "workshop setup" where you configure tools before using them. Utils are business logic helpers that can be reused across projects, while lib contains project-specific configurations for third-party services. Both folders help keep your main application code clean and organized by separating utility functions and library configurations from your core component logic.
+
+
+----------------------------
+install sonner component for toast notification
+
+201 is for creation

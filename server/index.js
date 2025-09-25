@@ -4,7 +4,7 @@ import dotenv from "dotenv"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 import mongoose from "mongoose"
-import authRoutes from "./routes/AuthRoutes"
+import authRoutes from "./routes/AuthRoutes.js"
 
 
 // congig the env (Load Environment Variables)
@@ -27,7 +27,7 @@ app.use(cookieParser());
 
 app.use(express.json()); // to have our body in json format
 
-app.use("/api/auth", authRoutes.js); // whenever we have a request to /api/auth it will be handled by authRoutes
+app.use("/api/auth", authRoutes); // whenever we have a request to /api/auth it will be handled by authRoutes
 
 // Setting up our server
 const server = app.listen(port, ()=>{

@@ -4,20 +4,80 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs.j
 import { Input } from "@/components/ui/input.jsx";
 import { useState } from 'react';
 import { Button } from "@/components/ui/button.jsx"
+import { toast } from "sonner";
+import {apiClient} from "@/lib/api-client.js";
+import { SIGNUP_ROUTE } from "@/utils/constants";
+import { LOGIN_ROUTE } from "@/utils/constants";
+import { useNavigate } from "react-router-dom";
+import { useAppStore } from "@/store/index.js";
 
 export const Auth = () => {
 
-
+    const navigate = useNavigate();
+    const {setUserInfo} = useAppStore();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setconfirmPassword] = useState("");
 
+    const validateLogin = () =>{
+        if(!email.length) {
+            toast.error("Email is required");
+            return false;
+        }
+        if(!password.length) {
+            toast.error("Password is required");
+            return false;
+        }
+        return true;
+    }
+
+    const ValidateSignup = () => {
+        if(!email.length) {
+            toast.error("Email is required");
+            return false;
+        }
+        if(!password.length) {
+            toast.error("Password is required");
+            return false;
+        }
+        if(password !== confirmPassword) {
+            toast.error("Passwords do not match");
+            return false;
+        }
+        return true;
+    }
+
     const handleLogin = async ()=>{
+        if(validateLogin()) {
+            const response = await apiClient.post(LOGIN_ROUTE, {email, password}, {withCredentials: true}); 
+            console.log(response);
+
+            //  If the user have id
+            if(response.data.user.id){
+                setUserInfo(response.data.user); // setting the user info in the zustand store
+                if(response.data.user.profileSetup) {
+                    navigate("/chat");
+                } 
+                else {
+                    navigate("/profile");
+                }
+            }
+        }
+
+
 
     };
 
     const handleSignup = async () =>{
-
+        if(ValidateSignup()){
+            const response = await apiClient.post(SIGNUP_ROUTE, {email, password}, { withCredentials: true}); // to send and receive cookies from the backend
+            
+            // since whenever a user gets signed up the profile is not set up, we will navigate to the profile setup page
+            if(response.status === 201) {
+                setUserInfo(response.data.user); // setting the user info in the zustand store
+                navigate("/profile");
+            }
+        }
     }
 
     return (
@@ -34,7 +94,7 @@ export const Auth = () => {
                         </p>
                     </div>
                     <div className="flex items-center justify-center w-full">
-                        <Tabs className="w-3/4">
+                        <Tabs className="w-3/4" defaultValue="login">
                             <TabsList className="bg-transparent rounded-none w-full">
                                 <TabsTrigger value="login" className="data-[state=active]:bg-transparent text-black text-opacity-90 border-b-2 rounded-none w-full data-[state=active]:text-black data-[state=active]:font-semibold data-[state=active]:border-b-purple-500 p-3 transition-all duration-300">Login</TabsTrigger>
                                 <TabsTrigger value="signup" className="data-[state=active]:bg-transparent text-black text-opacity-90 border-b-2 rounded-none w-full data-[state=active]:text-black data-[state=active]:font-semibold data-[state=active]:border-b-purple-500 p-3 transition-all duration-300">Signup</TabsTrigger>
