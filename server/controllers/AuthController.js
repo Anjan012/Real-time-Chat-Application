@@ -23,8 +23,9 @@ export const signup = async (request, response, next) => {
     // return as cookie
     response.cookie("jwt", createToken(email, user.id), {
       maxAge,
-      secure: true,
-      sameSite: "none",
+      httpOnly: true,
+      secure: false,     // Must be false on localhost
+      sameSite: "lax",   // Safe and works with localhost
     });
 
     return response.status(201).json({
@@ -62,8 +63,9 @@ export const login = async (request, response, next) => {
     // if everything is fine then create a token and send it as cookie
     response.cookie("jwt", createToken(email, user.id), {
       maxAge,
-      secure: true,
-      sameSite: "none",
+      httpOnly: true,
+      secure: false,     // Must be false on localhost
+      sameSite: "lax",   // Safe and works with localhost
     });
 
     return response.status(200).json({
