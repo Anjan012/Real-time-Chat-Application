@@ -17,10 +17,10 @@ const databaseURL = process.env.DATABASE_URL;
 app.use(cors({
     origin: [process.env.ORIGIN], // from where your request is going to be made can have multiple origins
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // methods that are available with this origin these are all the restAPIs method 
-    credentials:true // for enabling cookies (Allow cookies to be sent with requests)
+    credentials:true // allows cookies/JWT tokens to be sent with requests. Without this, your React app wouldn’t be able to include cookies/JWT tokens.
 
 }));
-
+ 
 // Setup Middleware---------
 
 app.use(cookieParser());

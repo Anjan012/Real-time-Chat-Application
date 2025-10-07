@@ -49,7 +49,6 @@ export const login = async (request, response, next) => {
       return response.status(400).send("Email and Password are required");
     }
 
-    // Uses the User model to insert a new user in MongoDB. The password will be hashed first, because of the userSchema.pre("save") middleware we wrote earlier.
     const user = await User.findOne({ email });
     if (!user) {
       return response.status(400).send("User with the given email does not exist");
@@ -76,6 +75,33 @@ export const login = async (request, response, next) => {
         lastName: user.lastName,
         image: user.image,
         color: user.color,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    return response.status(500).send("Internal Server Error");
+  }
+};
+
+export const getUserInfo = async (request, response, next) => {
+  try {
+
+    const userData = await User.findById(request.userId);
+
+    if(!userData){
+      return response.status(404).send("User with the given id is not found!");
+    }
+
+
+    return response.status(200).json({
+      user: {
+        id: userData.id,
+        email: userData.email,
+        profileSetup: userData.profileSetup,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        image: userData.image,
+        color: userData.color,
       },
     });
   } catch (error) {
