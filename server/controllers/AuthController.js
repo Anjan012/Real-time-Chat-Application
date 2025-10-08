@@ -3,8 +3,9 @@
 import User from "../models/UserModel.js";
 import jwt from "jsonwebtoken";
 import { compare } from "bcrypt";
+import {renameSync, unlinkSync} from "fs";
 
-const maxAge = 3 * 24 * 60 * 60; // 3 days in seconds
+const maxAge = 3 * 24 * 60 * 60 * 1000; // // 3 days in MILLISECONDS
 const createToken = (email, userId) => {
   return jwt.sign({ email, userId }, process.env.JWT_KEY, { expiresIn: maxAge }); // creating the token using the sign method from jsonwebtoken package
 };
@@ -94,17 +95,96 @@ export const getUserInfo = async (request, response, next) => {
       return response.status(404).send("User with the given id is not found!");
     }
 
+    return response.status(200).json({
+      id: userData.id,
+      email: userData.email,
+      profileSetup: userData.profileSetup,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      image: userData.image,
+      color: userData.color,
+    });
+  } catch (error) {
+    console.log(error);
+    return response.status(500).send("Internal Server Error");
+  }
+};
+
+export const updateProfile = async (request, response, next) => {
+  try {
+    const {userId} = request;
+    // getting data from body
+    const {firstName, lastName, color} = request.body;
+
+    if(!firstName || !lastName){
+      return response.status(400).send("Firstname lastname and color is required.");
+    }
+
+    // update the data 
+    const userData = await User.findByIdAndUpdate(userId, {
+      firstName, lastName, color, profileSetup:true
+    }, {new:true, runValidators:true}) // new: true tells mongodb query to return the new data so that we can send it to the frontend. runValidators:true validate if error it returns the error
 
     return response.status(200).json({
-      user: {
-        id: userData.id,
-        email: userData.email,
-        profileSetup: userData.profileSetup,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        image: userData.image,
-        color: userData.color,
-      },
+      id: userData.id,
+      email: userData.email,
+      profileSetup: userData.profileSetup,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      image: userData.image,
+      color: userData.color,
+    });
+  } catch (error) {
+    console.log(error);
+    return response.status(500).send("Internal Server Error");
+  }
+};
+
+
+export const addProfileImage = async (request, response, next) => {
+  try {
+    if(!request.file) {
+      return response.status(400).send("File is required.");
+    }
+
+    const data = Date.now();
+    let fileName = "upload/profiles/" + date + request.file.originalName;
+    renameSync(request.file.path, fileName);
+
+    const updatedUser = await User.findOneAndUpdate(request.userId, {image:fileName}, {new:true, runValidators:true});
+
+    return response.status(200).json({
+      image: updatedUser.image
+    });
+  } catch (error) {
+    console.log(error);
+    return response.status(500).send("Internal Server Error");
+  }
+};
+
+export const removeProfileImage = async (request, response, next) => {
+  try {
+    const {userId} = request;
+    // getting data from body
+    const {firstName, lastName, color} = request.body;
+
+    if(!firstName || !lastName){
+      return response.status(400).send("Firstname lastname and color is required.");
+    }
+
+    // update the data 
+    const userData = await User.findByIdAndUpdate(userId, {
+      firstName, lastName, color, profileSetup:true
+    }, {new:true, runValidators:true}) // new: true tells mongodb query to return the new data so that we can send it to the frontend. runValidators:true validate if error it returns the error
+
+    return response.status(200).json({
+      id: userData.id,
+      email: userData.email,
+      profileSetup: userData.profileSetup,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      image: userData.image,
+      color: userData.color,
     });
   } catch (error) {
     console.log(error);

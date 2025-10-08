@@ -20,6 +20,8 @@ app.use(cors({
     credentials:true // allows cookies/JWT tokens to be sent with requests. Without this, your React app wouldn’t be able to include cookies/JWT tokens.
 
 }));
+
+app.use("/uploads/profiles", express.static("/uploads/profiles"));
  
 // Setup Middleware---------
 
