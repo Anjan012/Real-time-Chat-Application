@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
-import { ADD_PROFILE_IMAGE_ROUTE, UPDATE_PROFILE_ROUTE } from "@/utils/constants";
+import { ADD_PROFILE_IMAGE_ROUTE, UPDATE_PROFILE_ROUTE, REMOVE_PROFILE_IMAGE_ROUTE, HOST } from "@/utils/constants";
 
 
 export const Profile = () => {
@@ -23,12 +23,15 @@ export const Profile = () => {
   const [selectedColor, setSelectedColor] = useState(0);
   const fileInputRef = useRef(null);
 
-  // As sson as we have the user info we need to run this effect
   useEffect(() => {
     if (userInfo.profileSetup) {
       setFirstName(userInfo.firstName);
       setLastName(userInfo.lastName);
       setSelectedColor(userInfo.color);
+    }
+    // I have this line just now getting error host is not defined
+    if(userInfo.image){
+      setImage(`${HOST}/${userInfo.image}`); 
     }
   }, [userInfo])
 
@@ -78,16 +81,18 @@ export const Profile = () => {
 
   const handleImageChange = async (event) => {
     //get the file
-    const file = event.target.file[0];
+    const file = event.target.files[0];
     if(file) {
       const formData = new FormData();
       formData.append("profile-image", file);
       const response = await apiClient.post(ADD_PROFILE_IMAGE_ROUTE, formData, {withCredentials:true, 
       });
       if(response.status===200 && response.data.image){
-        setUserInfo({...userInfo,image:response.data.image });
-        toast.success("Image updated sucessfully.");
-      }
+  console.log("Full response.data:", response.data); // ✅ Add this
+  console.log("Image path:", response.data.image);  // ✅ And this
+  setUserInfo({...userInfo,image:response.data.image });
+  toast.success("Image updated sucessfully.");
+}
       const reader = new FileReader();
 
       reader.onload = () => {
@@ -98,7 +103,16 @@ export const Profile = () => {
   }
 
   const handleDeleteImage = async () => {
-
+    try {
+      const response = await apiClient.delete(REMOVE_PROFILE_IMAGE_ROUTE, { withCredentials: true });
+      if (response.status === 200) {
+        setUserInfo({ ...userInfo, image: null });
+        toast.success("Image removed successfully.");
+        setImage(null);
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   return (

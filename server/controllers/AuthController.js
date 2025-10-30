@@ -147,11 +147,11 @@ export const addProfileImage = async (request, response, next) => {
       return response.status(400).send("File is required.");
     }
 
-    const data = Date.now();
-    let fileName = "upload/profiles/" + date + request.file.originalName;
+    const date = Date.now();
+    let fileName = "uploads/profiles/" + date + request.file.originalname;
     renameSync(request.file.path, fileName);
 
-    const updatedUser = await User.findOneAndUpdate(request.userId, {image:fileName}, {new:true, runValidators:true});
+    const updatedUser = await User.findByIdAndUpdate(request.userId, {image:fileName}, {new:true, runValidators:true});
 
     return response.status(200).json({
       image: updatedUser.image
@@ -165,27 +165,38 @@ export const addProfileImage = async (request, response, next) => {
 export const removeProfileImage = async (request, response, next) => {
   try {
     const {userId} = request;
-    // getting data from body
-    const {firstName, lastName, color} = request.body;
+    const user = await User.findById(userId);
 
-    if(!firstName || !lastName){
-      return response.status(400).send("Firstname lastname and color is required.");
+    if(!user){
+      return response.status(404).send("User not found!");
     }
 
-    // update the data 
-    const userData = await User.findByIdAndUpdate(userId, {
-      firstName, lastName, color, profileSetup:true
-    }, {new:true, runValidators:true}) // new: true tells mongodb query to return the new data so that we can send it to the frontend. runValidators:true validate if error it returns the error
+    if(user.image){
+      unlinkSync(user.image); // deleting the image from the folder
+    }
 
-    return response.status(200).json({
-      id: userData.id,
-      email: userData.email,
-      profileSetup: userData.profileSetup,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      image: userData.image,
-      color: userData.color,
+    user.image = null;
+    await user.save(); // saving the user without image .save() method to save the changes made to the user document in the database.it is the mongoose document method
+
+
+    return response.status(200).send("Profile image removed successfully.");
+  } catch (error) {
+    console.log(error);
+    return response.status(500).send("Internal Server Error");
+  }
+};
+
+// logout controller
+export const logout = async (request, response, next) => {
+  try {
+    response.cookie("jwt", "", {
+      maxAge: 1, // expire the cookie immediately in 1 millisecond
+      httpOnly: true,
+      secure: true,     // Must be false on localhost
+      sameSite: "none",   // Safe and works with localhost
     });
+
+    return response.status(200).send("Logout successfull.");
   } catch (error) {
     console.log(error);
     return response.status(500).send("Internal Server Error");

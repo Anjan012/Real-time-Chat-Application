@@ -3,7 +3,7 @@ import './App.css'
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Auth } from "./pages/auth"
 import { Chat } from "./pages/chat"
-import { Profile } from "./pages/profile"
+import { Profile } from "./pages/chat/components/profile"
 import { useAppStore } from "@/store/index.js";
 import { GET_USER_INFO } from './utils/constants';
 import { apiClient } from './lib/api-client';
