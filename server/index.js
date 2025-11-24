@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser"
 import mongoose from "mongoose"
 import authRoutes from "./routes/AuthRoutes.js"
 import contactRouter from "./routes/ContactRoutes.js"
+import setupSocket from "./socket.js"
 
 
 // congig the env (Load Environment Variables)
@@ -38,6 +39,8 @@ app.use("/api/contacts", contactRouter);
 const server = app.listen(port, ()=>{
     console.log(`Server is running at: http:..localhost:${port}`);
 })
+
+setupSocket(server);
 
 // Connecting our database
 
