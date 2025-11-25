@@ -5,8 +5,9 @@ import cors from "cors"
 import cookieParser from "cookie-parser"
 import mongoose from "mongoose"
 import authRoutes from "./routes/AuthRoutes.js"
-import contactRouter from "./routes/ContactRoutes.js"
+import contactRoutes from "./routes/ContactRoutes.js"
 import setupSocket from "./socket.js"
+import messagesRoutes from "./routes/MessagesRoutes.js"
 
 
 // congig the env (Load Environment Variables)
@@ -33,7 +34,8 @@ app.use(express.json()); // to have our body in json format
 
 app.use("/api/auth", authRoutes); // whenever we have a request to /api/auth it will be handled by authRoutes
 
-app.use("/api/contacts", contactRouter);
+app.use("/api/contacts", contactRoutes);
+app.use("/api/messages", messagesRoutes);
 
 // Setting up our server
 const server = app.listen(port, ()=>{

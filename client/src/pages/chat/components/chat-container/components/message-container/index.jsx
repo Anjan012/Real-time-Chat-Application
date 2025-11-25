@@ -1,11 +1,36 @@
 import { useAppStore } from "@/store"
 import { useEffect, useRef } from "react";
 import moment from "moment"; // library for managing date
+import { apiClient } from "@/lib/api-client";
+import { GET_ALL_MESSAGES_ROUTE } from "@/utils/constants";
 
 const MessageContainer = () => {
 
   const scrollRef = useRef();
-  const { selectedChatType, selectedChatData, userInfo, selectedChatMessages } = useAppStore();
+  const { selectedChatType, selectedChatData, userInfo, selectedChatMessages, setSelectedChatMessages } = useAppStore();
+
+  useEffect(() => {
+
+    const getMessages = async () => {
+      try {
+        const response = await apiClient.post(
+          GET_ALL_MESSAGES_ROUTE, 
+          { id: selectedChatData._id }, 
+          { withCredentials: true }
+        );
+
+        if(response.data.messages){
+          setSelectedChatMessages(response.data.messages);
+        }
+      } catch (error) {
+        console.log(error);
+
+      }
+    }
+    if (selectedChatData._id) {
+      if (selectedChatType === 'contact') getMessages();
+    }
+  }, [selectedChatData, selectedChatType, setSelectedChatMessages])
 
   // Whenever the selectedChatMessages changes we need to scroll at the end of the message using ref
   useEffect(() => {
@@ -41,7 +66,7 @@ const MessageContainer = () => {
       {
         message.messageType === 'text' && (
           <div className={`${message.sender !== selectedChatData._id ? "bg-[#8417ff]/5 text-[#8417ff]/90 border-[#8417ff]/50 " : "bg-[#2a2b33]/5 text-white/80 border-white/20"} border inline-block p-4 rou my-1 max-w[50%] break-words`}>
-           {message.content}
+            {message.content}
           </div>
         )
       }
@@ -51,7 +76,7 @@ const MessageContainer = () => {
         }
       </div>
     </div>
-    )
+  )
   return (
     <div className="flex-1 overflow-y-auto scrollbar-hidden p-4 px-8 md:w-[65vw] lg:w-[70vw] xl:w-[80vw] w-full " ref={scrollRef}>
       {renderMessages()}
