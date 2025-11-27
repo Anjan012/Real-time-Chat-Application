@@ -2,7 +2,6 @@ import { HOST, LOGOUT_ROUTE } from "@/utils/constants";
 import { Avatar, AvatarImage } from "@radix-ui/react-avatar"
 import { useAppStore } from "@/store/index.js";
 import { getColor } from "@/lib/utils";
-import { use } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { FiEdit2 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
