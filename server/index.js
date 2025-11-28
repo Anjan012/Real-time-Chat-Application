@@ -25,12 +25,15 @@ app.use(cors({
 }));
 
 app.use("/uploads/profiles", express.static("/uploads/profiles"));
+// app.use("/uploads/files", express.static("/uploads/files"));
+app.use("/uploads", express.static("uploads"));
+
  
+app.use(express.json()); // to have our body in json format
 // Setup Middleware---------
 
 app.use(cookieParser());
 
-app.use(express.json()); // to have our body in json format
 
 app.use("/api/auth", authRoutes); // whenever we have a request to /api/auth it will be handled by authRoutes
 
