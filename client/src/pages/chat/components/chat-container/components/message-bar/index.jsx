@@ -14,7 +14,7 @@ const MessageBar = () => {
   // creating a ref for the file import 
   const fileInputRef = useRef();
   const Socket = useSocket();
-  const { selectedChatType, selectedChatData, userInfo } = useAppStore();
+  const { selectedChatType, selectedChatData, userInfo, setIsUploading, setFileUploadProgress } = useAppStore();
   // using useState to maintain the message input value
   const [message, setMessage] = useState("");
 
@@ -62,11 +62,18 @@ const MessageBar = () => {
       if (file) {
         const formData = new FormData();
         formData.append("file", file);
-
-        const response = await apiClient.post(UPLOAD_FILE_ROUTE, formData, { withCredentials: true });
+        setIsUploading(true);
+        const response = await apiClient.post(UPLOAD_FILE_ROUTE, formData, 
+          { 
+            withCredentials: true,
+            onUploadProgress: data => {
+              setFileUploadProgress(Math.round((100*data.loaded) / data.total));
+            }
+          }
+        );
 
         if (response.status === 200 && response.data) {
-
+          setIsUploading(false);
           if (selectedChatType === "contact") {
             Socket.emit("sendMessage", {
               sender: userInfo.id,
@@ -80,6 +87,7 @@ const MessageBar = () => {
       }
       console.log(file);
     } catch (error) {
+      setIsUploading(false);
       console.log(error);
     }
   }

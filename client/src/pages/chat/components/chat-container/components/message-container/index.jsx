@@ -1,27 +1,31 @@
 import { useAppStore } from "@/store"
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import moment from "moment"; // library for managing date
 import { apiClient } from "@/lib/api-client";
 import { GET_ALL_MESSAGES_ROUTE, HOST } from "@/utils/constants";
-import {MdFolderZip} from 'react-icons/md'
-import {IoMdArrowRoundDown} from 'react-icons/io';
+import { MdFolderZip } from 'react-icons/md'
+import { IoMdArrowRoundDown } from 'react-icons/io';
+import { IoCloseSharp } from "react-icons/io5";
 
 const MessageContainer = () => {
 
   const scrollRef = useRef();
-  const { selectedChatType, selectedChatData, userInfo, selectedChatMessages, setSelectedChatMessages } = useAppStore();
+  const { selectedChatType, selectedChatData, selectedChatMessages, setSelectedChatMessages, setFileDownloadProgress, setIsDownloading } = useAppStore();
+
+  const [showImage, setShowImage] = useState(false);
+  const [imageUrl, setImageUrl] = useState(null);
 
   useEffect(() => {
 
     const getMessages = async () => {
       try {
         const response = await apiClient.post(
-          GET_ALL_MESSAGES_ROUTE, 
-          { id: selectedChatData._id }, 
+          GET_ALL_MESSAGES_ROUTE,
+          { id: selectedChatData._id },
           { withCredentials: true }
         );
 
-        if(response.data.messages){
+        if (response.data.messages) {
           setSelectedChatMessages(response.data.messages);
         }
       } catch (error) {
@@ -48,9 +52,15 @@ const MessageContainer = () => {
   }
 
   const downloadFile = async (url) => {
+    setIsDownloading(true);
+    setFileDownloadProgress(0);
     const response = await apiClient.get(`${HOST}/${url}`, {
       responseType: "blob",
-
+      onDownloadProgress:(progressEvent) => {
+        const {loaded, total} = progressEvent;
+        const percentCompleted = Math.round((loaded*100)/total);
+        setFileDownloadProgress(percentCompleted);
+      }
     }); // fetching the file using axios
 
     const urlBlob = window.URL.createObjectURL(new Blob([response.data])); // creating a object URL
@@ -61,7 +71,8 @@ const MessageContainer = () => {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(urlBlob);
-
+    setIsDownloading(false);
+    setFileDownloadProgress(0);
   }
 
   const renderMessages = () => {
@@ -96,24 +107,24 @@ const MessageContainer = () => {
         )
       }
       {
-        message.messageType === "file" && 
-         <div className={`${message.sender !== selectedChatData._id ? "bg-[#8417ff]/5 text-[#8417ff]/90 border-[#8417ff]/50 " : "bg-[#2a2b33]/5 text-white/80 border-white/20"} border inline-block p-4 rou my-1 max-w[50%] break-words`}>
-            {checkIfImage(message.file) ? <div className="cursor-pointer"> <img src={`${HOST}/${message.file}`} height={300} width={300} /> </div> : (
-              <div className="flex items-center justify-center gap-4"> 
-                <span className="text-white/8- text-3xl bg-black/20 rounded-full p-3"> 
-                  <MdFolderZip />
-                </span>
-                <span>
-                  {
-                    message.file.split("/").pop()
-                  }
-                </span>
-                <span className="bg-black/20 p-3 text-2xl rounded-full hover:bg-black/50 cursor-pointer transition-all duration-300" onClick={() => downloadFile(message.file)}>
-                  <IoMdArrowRoundDown />
-                </span>
-              </div>
-              )}
-          </div>
+        message.messageType === "file" &&
+        <div className={`${message.sender !== selectedChatData._id ? "bg-[#8417ff]/5 text-[#8417ff]/90 border-[#8417ff]/50 " : "bg-[#2a2b33]/5 text-white/80 border-white/20"} border inline-block p-4 rou my-1 max-w[50%] break-words`}>
+          {checkIfImage(message.file) ? <div className="cursor-pointer" onClick={() => { setShowImage(true); setImageUrl(message.file) }}> <img src={`${HOST}/${message.file}`} height={300} width={300} /> </div> : (
+            <div className="flex items-center justify-center gap-4">
+              <span className="text-white/8- text-3xl bg-black/20 rounded-full p-3">
+                <MdFolderZip />
+              </span>
+              <span>
+                {
+                  message.file.split("/").pop()
+                }
+              </span>
+              <span className="bg-black/20 p-3 text-2xl rounded-full hover:bg-black/50 cursor-pointer transition-all duration-300" onClick={() => downloadFile(message.file)}>
+                <IoMdArrowRoundDown />
+              </span>
+            </div>
+          )}
+        </div>
       }
 
       <div className="text-xs text-gray-600">
@@ -127,6 +138,22 @@ const MessageContainer = () => {
     <div className="flex-1 overflow-y-auto scrollbar-hidden p-4 px-8 md:w-[65vw] lg:w-[70vw] xl:w-[80vw] w-full " >
       {renderMessages()}
       <div ref={scrollRef} />
+      {
+        showImage && <div className="fixed z-[1000] top-0 left-0 h-{100vh] w-[100vw] flex items-center justify-center backdrop-blur-lg flex-col"> 
+          <div>
+            <img src={`${HOST}/${imageUrl}`} className="h-[80vh] w-full bg-cover" />
+          </div>
+          <div className="flex gap-5 fixed top-0 mt-5">
+            <button className="bg-black/20 p-3 text-2xl rounded-full hover:bg-black/50 cursor-pointer transition-all duration-300">
+              <IoMdArrowRoundDown onClick={() => downloadFile(imageUrl)}/>
+            </button>
+            <button className="bg-black/20 p-3 text-2xl rounded-full hover:bg-black/50 cursor-pointer transition-all duration-300">
+              <IoCloseSharp onClick={() => {setShowImage(false); setImageUrl(null)}}/>
+            </button>
+          </div>
+        </div>
+
+      }
     </div>
   )
 }
