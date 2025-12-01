@@ -8,6 +8,7 @@ import authRoutes from "./routes/AuthRoutes.js"
 import contactRoutes from "./routes/ContactRoutes.js"
 import setupSocket from "./socket.js"
 import messagesRoutes from "./routes/MessagesRoutes.js"
+import channelRoutes from "./routes/ChannelRoutes.js"
 
 
 // congig the env (Load Environment Variables)
@@ -39,6 +40,7 @@ app.use("/api/auth", authRoutes); // whenever we have a request to /api/auth it 
 
 app.use("/api/contacts", contactRoutes);
 app.use("/api/messages", messagesRoutes);
+app.use("/api/channel", channelRoutes);
 
 // Setting up our server
 const server = app.listen(port, ()=>{
