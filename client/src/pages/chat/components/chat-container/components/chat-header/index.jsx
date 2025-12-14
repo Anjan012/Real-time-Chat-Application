@@ -17,12 +17,12 @@ const ChatHeader = () => {
         <div className="flex gap-3 items-center justify-center">
           <div className="w-12 h-12 relative">
             {
-              selectedChatType === "contact" ?( <Avatar className="h-12 w-12 rounded-full overflow-hidden">
+              selectedChatType === "contact" ?( <Avatar className="h-12 w-12 overflow-hidden">
               {selectedChatData.image ? (
                 <AvatarImage
                   src={`${HOST}/${selectedChatData.image}`}
                   alt="profile"
-                  className="object-cover w-full h-full bg-black"
+                  className="object-cover w-full h-full bg-black rounded-full"
                 />
               ) : (
                 <div className={`uppercase h-12 w-12 text-lg border-[1px] flex items-center justify-center rounded-full ${getColor(selectedChatData.color)}`}>
