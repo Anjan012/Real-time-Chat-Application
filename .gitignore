@@ -1,0 +1,7 @@
+# Ignore all uploaded files
+server/uploads/
+# Or more specifically:
+server/uploads/files/
+# Or everything in uploads except maybe a .gitkeep placeholder if needed
+server/uploads/**
+!server/uploads/.gitkeep  # Optional: add an empty .gitkeep to keep the folder structure

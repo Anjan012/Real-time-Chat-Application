@@ -1,5 +1,8 @@
+import ChaCipher from "../utils/ChaCipher.js";
 import Message from "../models/MessagesModel.js";
-import {mkdirSync, renameSync} from 'fs';
+import { mkdirSync, renameSync } from "fs";
+
+const cipher = new ChaCipher(process.env.ENCRYPTION_SECRET_KEY );
 
 export const getMessages = async (request, response, next) => {
   try {
@@ -15,9 +18,20 @@ export const getMessages = async (request, response, next) => {
         { sender: user1, recipient: user2 },
         { sender: user2, recipient: user1 },
       ],
-    }).sort({timestamp: 1});
+    }).sort({ timestamp: 1 });
 
-    return response.status(200).json({ messages });
+    // 🔓 DECRYPT TEXT MESSAGES
+    const decryptedMessages = messages.map((msg) => {
+      const messageObj = msg.toObject();
+
+      if (messageObj.messageType === "text" && messageObj.content) {
+        messageObj.content = cipher.decrypt(messageObj.content);
+      }
+
+      return messageObj;
+    });
+
+    return response.status(200).json({ messages: decryptedMessages });
   } catch (error) {
     console.log(error);
     return response.status(500).send("Internal Server Error");
@@ -28,7 +42,7 @@ export const getMessages = async (request, response, next) => {
 
 export const uploadFile = async (request, response, next) => {
   try {
-    if(!request.file){
+    if (!request.file) {
       response.status(400).send("file is required!");
     }
 

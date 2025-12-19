@@ -1,6 +1,10 @@
+import ChaCipher from "../utils/ChaCipher.js";
 import mongoose from "mongoose";
 import Channel from "../models/ChannelModel.js";
 import User from "../models/UserModel.js";
+const cipher = new ChaCipher(
+  process.env.ENCRYPTION_SECRET_KEY
+);
 
 export const createChannel = async (request, response, next) => {
   try {
@@ -49,10 +53,10 @@ export const getUserChannels = async (request, response, next) => {
     return response.status(500).send("Internal Server Error");
   }
 };
-
 export const getChannelMessages = async (request, response, next) => {
   try {
     const { channelId } = request.params;
+
     const channel = await Channel.findById(channelId).populate({
       path: "messages",
       populate: {
@@ -61,11 +65,20 @@ export const getChannelMessages = async (request, response, next) => {
       },
     });
 
-    if(!channel) {
-        return response.status(201).send("Channel not found!");
+    if (!channel) {
+      return response.status(201).send("Channel not found!");
     }
 
-    const messages = channel.messages;
+    // 🔓 Decrypt only text messages
+    const messages = channel.messages.map((msg) => {
+      const message = msg.toObject(); // avoid mutating mongoose doc
+
+      if (message.messageType === "text" && message.content) {
+        message.content = cipher.decrypt(message.content);
+      }
+
+      return message;
+    });
 
     return response.status(201).json({ messages });
   } catch (error) {
@@ -73,3 +86,27 @@ export const getChannelMessages = async (request, response, next) => {
     return response.status(500).send("Internal Server Error");
   }
 };
+
+// export const getChannelMessages = async (request, response, next) => {
+//   try {
+//     const { channelId } = request.params;
+//     const channel = await Channel.findById(channelId).populate({
+//       path: "messages",
+//       populate: {
+//         path: "sender",
+//         select: "firstName lastName email _id image color",
+//       },
+//     });
+
+//     if(!channel) {
+//         return response.status(201).send("Channel not found!");
+//     }
+
+//     const messages = channel.messages;
+
+//     return response.status(201).json({ messages });
+//   } catch (error) {
+//     console.log(error);
+//     return response.status(500).send("Internal Server Error");
+//   }
+// };

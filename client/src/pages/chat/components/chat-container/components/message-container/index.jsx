@@ -207,7 +207,7 @@ const MessageContainer = () => {
 
             </Avatar>
             <span className="text-sm text-white/60">
-              { `{message.sender.firstName} ${message.sender.lastName} `}
+              { `${message.sender.firstName} ${message.sender.lastName} `}
             </span>
             <span className="text-xs text-white/60">
               {

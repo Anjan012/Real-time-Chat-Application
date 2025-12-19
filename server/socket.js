@@ -1,6 +1,9 @@
 import { Server as SocketIoServer } from "socket.io";
 import Message from "./models/MessagesModel.js";
 import Channel from "./models/ChannelModel.js";
+import ChaCipher from "./utils/ChaCipher.js";
+
+const cipher = new ChaCipher(process.env.ENCRYPTION_SECRET_KEY );
 
 const setupSocket = (server) => {
   // we will get the server from index.js
@@ -29,42 +32,57 @@ const setupSocket = (server) => {
   };
 
   const sendMessage = async (message) => {
-    // getting sender and recipient id
     const senderSocketId = userSocketMap.get(message.sender);
     const recipientSocketId = userSocketMap.get(message.recipient);
 
+    // 🔐 encrypt only text messages
+    if (message.messageType === "text" && message.content) {
+      message.content = cipher.encrypt(message.content);
+    }
+
     const createMessage = await Message.create(message);
 
-    // to send the message details to the user we need to populate the sender and recipient
     const messageData = await Message.findById(createMessage._id)
       .populate("sender", "id email firstName lastName image color")
       .populate("recipient", "id email firstName lastName image color");
 
+    // 🔓 decrypt before sending
+    const messageToSend = messageData.toObject();
+    if (messageToSend.messageType === "text" && messageToSend.content) {
+      messageToSend.content = cipher.decrypt(messageToSend.content);
+    }
+
     if (recipientSocketId) {
-      // if the reciver is online then we need to emit the event
-      io.to(recipientSocketId).emit("receiveMessage", messageData);
+      io.to(recipientSocketId).emit("receiveMessage", messageToSend);
     }
 
     if (senderSocketId) {
-      io.to(senderSocketId).emit("receiveMessage", messageData);
+      io.to(senderSocketId).emit("receiveMessage", messageToSend);
     }
   };
 
   const sendchannelMessage = async (message) => {
     const { channelId, sender, content, messageType, file } = message;
 
+    let encryptedContent = content;
+
+    if (messageType === "text" && content) {
+      encryptedContent = cipher.encrypt(content);
+    }
+
     const createdMessage = await Message.create({
       sender,
       recipient: null,
-      content,
+      content: encryptedContent,
       messageType,
       timestamp: new Date(),
       file,
     });
 
-    const messageData = await Message.findById(createdMessage._id)
-      .populate("sender", "id email firstName lastName image color")
-      .exec();
+    const messageData = await Message.findById(createdMessage._id).populate(
+      "sender",
+      "id email firstName lastName image color"
+    );
 
     await Channel.findByIdAndUpdate(channelId, {
       $push: { messages: createdMessage._id },
@@ -72,8 +90,13 @@ const setupSocket = (server) => {
 
     const channel = await Channel.findById(channelId).populate("members");
 
+    const messageToSend = messageData.toObject();
+    if (messageToSend.messageType === "text" && messageToSend.content) {
+      messageToSend.content = cipher.decrypt(messageToSend.content);
+    }
+
     const finalData = {
-      ...messageData._doc,
+      ...messageToSend,
       channelId: channel._id,
     };
 
@@ -84,6 +107,7 @@ const setupSocket = (server) => {
           io.to(memberSocketId).emit("receive-channel-message", finalData);
         }
       });
+
       const adminSocketId = userSocketMap.get(channel.admin._id.toString());
       if (adminSocketId) {
         io.to(adminSocketId).emit("receive-channel-message", finalData);
