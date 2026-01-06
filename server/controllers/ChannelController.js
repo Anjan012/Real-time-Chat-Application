@@ -87,26 +87,100 @@ export const getChannelMessages = async (request, response, next) => {
   }
 };
 
-// export const getChannelMessages = async (request, response, next) => {
-//   try {
-//     const { channelId } = request.params;
-//     const channel = await Channel.findById(channelId).populate({
-//       path: "messages",
-//       populate: {
-//         path: "sender",
-//         select: "firstName lastName email _id image color",
-//       },
-//     });
+export const getChannelMembers = async (req, res) => {
+  try {
+    const { channelId } = req.params;
 
-//     if(!channel) {
-//         return response.status(201).send("Channel not found!");
-//     }
+    const channel = await Channel.findById(channelId)
+      .populate("members", "firstName lastName email image color")
+      .populate("admin", "_id");
 
-//     const messages = channel.messages;
+    if (!channel) return res.status(404).send("Channel not found");
 
-//     return response.status(201).json({ messages });
-//   } catch (error) {
-//     console.log(error);
-//     return response.status(500).send("Internal Server Error");
-//   }
-// };
+    return res.status(200).json({
+      members: channel.members,
+      adminId: channel.admin._id,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+
+export const addChannelMember = async (req, res) => {
+  try {
+    const { channelId, userIdToAdd } = req.body;
+    const requesterId = req.userId;
+
+    const channel = await Channel.findById(channelId);
+
+    if (!channel) return res.status(404).send("Channel not found");
+
+    if (channel.admin.toString() !== requesterId) {
+      return res.status(403).send("Only admin can add members");
+    }
+
+    if (channel.members.includes(userIdToAdd)) {
+      return res.status(400).send("User already in channel");
+    }
+
+    channel.members.push(userIdToAdd);
+    await channel.save();
+
+    res.status(200).send("Member added");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+
+export const removeChannelMember = async (req, res) => {
+  try {
+    const { channelId, userIdToRemove } = req.body;
+    const requesterId = req.userId;
+
+    const channel = await Channel.findById(channelId);
+
+    if (!channel) return res.status(404).send("Channel not found");
+
+    if (channel.admin.toString() !== requesterId) {
+      return res.status(403).send("Only admin can remove members");
+    }
+
+    channel.members = channel.members.filter(
+      (id) => id.toString() !== userIdToRemove
+    );
+
+    await channel.save();
+
+    res.status(200).send("Member removed");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+export const leaveChannel = async (req, res) => {
+  try {
+    const { channelId } = req.body;
+    const userId = req.userId;
+
+    const channel = await Channel.findById(channelId);
+
+    if (!channel) return res.status(404).send("Channel not found");
+
+    channel.members = channel.members.filter(
+      (id) => id.toString() !== userId
+    );
+
+    await channel.save();
+
+    res.status(200).send("Left channel");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
