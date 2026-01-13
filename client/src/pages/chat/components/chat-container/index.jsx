@@ -1,6 +1,7 @@
 import ChatHeader from "./components/chat-header";
 import MessageContainer from "./components/message-container";
 import MessageBar from "./components/message-bar";
+import ChannelMembersPanel from "./components/chat-header/ChannelMembersPanel";
 
 export const ChatContainer = () => {
   return (
@@ -10,6 +11,7 @@ export const ChatContainer = () => {
 
       <ChatHeader/>
       <MessageContainer/>
+      <ChannelMembersPanel />
       <MessageBar/>
 
     </div>

@@ -29,6 +29,8 @@ export const Chat = () => {
     }
   }, [userInfo, navigate]); // now the chat page would not be accessible until the profile setup is complete
 
+  
+
   return (
     <div className="flex h-[100vh] text-white overflow-hidden">
       {

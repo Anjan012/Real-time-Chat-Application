@@ -6,7 +6,7 @@ import { io } from "socket.io-client";
 const SocketContext = createContext(null);
 
 export const useSocket = () => {
-    return useContext(SocketContext); // Create a shortcut hook called useSocket that gives you access to the socket from anywhere in your app."
+    return useContext(SocketContext);
 };
 
 export const SocketProvider = ({ children }) => {
@@ -25,16 +25,14 @@ export const SocketProvider = ({ children }) => {
             });
 
             const handleReceiveMessage = (message) => {
-                // get the current selected chat data and type
                 const { selectedChatData, selectedChatType, addMessage, addContactsInDMContacts } = useAppStore.getState();
 
                 if (selectedChatType !== undefined && (selectedChatData._id === message.sender._id || selectedChatData._id === message.recipient._id)) {
                     console.log("message received:", message);
-                    
-                    addMessage(message)
+                    addMessage(message);
                 }
                 addContactsInDMContacts(message);
-            }
+            };
 
             const handleReceiveChannelMessage = (message) => {
                 const { selectedChatData, selectedChatType, addMessage, addChannelInChannelList } = useAppStore.getState();
@@ -43,11 +41,27 @@ export const SocketProvider = ({ children }) => {
                     addMessage(message);
                 }
                 addChannelInChannelList(message);
-
             };
 
+            // 🆕 NEW: Handle when user is removed from channel
+            const handleRemovedFromChannel = ({ channelId }) => {
+                const { removeChannelById } = useAppStore.getState();
+                console.log("You were removed from channel:", channelId);
+                removeChannelById(channelId);
+            };
+
+            // 🆕 NEW: Handle when user leaves channel
+            const handleLeftChannel = ({ channelId }) => {
+                const { removeChannelById } = useAppStore.getState();
+                console.log("You left the channel:", channelId);
+                removeChannelById(channelId);
+            };
+
+            // Register all socket event listeners
             socket.current.on("receiveMessage", handleReceiveMessage);
-            socket.current.on("receive-channel-message", handleReceiveChannelMessage)
+            socket.current.on("receive-channel-message", handleReceiveChannelMessage);
+            socket.current.on("removed-from-channel", handleRemovedFromChannel); // 🆕
+            socket.current.on("left-channel", handleLeftChannel); // 🆕
 
             return () => {
                 socket.current.disconnect();
@@ -59,6 +73,5 @@ export const SocketProvider = ({ children }) => {
         <SocketContext.Provider value={socket.current}>
             {children}
         </SocketContext.Provider>
-    )
-
+    );
 };

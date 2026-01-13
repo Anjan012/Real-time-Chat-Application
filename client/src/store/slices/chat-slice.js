@@ -8,6 +8,32 @@ export const chatSlice = (set, get) => ({
   fileUploadProgress: 0,
   fileDownloadProgress: 0,
   channels: [],
+
+  membersPanelOpen: false,
+  channelMembers: [],
+
+  openMembersPanel: () => set({ membersPanelOpen: true }),
+  closeMembersPanel: () => set({ membersPanelOpen: false }),
+  setChannelMembers: (members) => set({ channelMembers: members }),
+
+  removeChannelById: (channelId) => {
+  const channels = get().channels.filter(
+    (c) => c._id !== channelId
+  );
+
+  set({ channels });
+
+  if (get().selectedChatData?._id === channelId) {
+    set({
+      selectedChatData: undefined,
+      selectedChatMessages: [],
+      selectedChatType: undefined,
+      membersPanelOpen: false,
+    });
+  }
+},
+
+
   setChannels: (channels) => set({ channels }),
   setIsUploading: (isUploading) => set({ isUploading }),
   setIsDownloading: (isDownloading) => set({ isDownloading }),

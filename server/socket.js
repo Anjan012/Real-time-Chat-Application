@@ -116,20 +116,52 @@ const setupSocket = (server) => {
   };
 
   // Creating the connection handler (main logic)
-  io.on("connection", (socket) => {
-    const userId = socket.handshake.query.userId; // whenever we are making the connection we will send the userId from the frontend
-    if (userId) {
-      userSocketMap.set(userId, socket.id);
-      console.log(`user connected: ${userId} with socket Id: ${socket.id}`);
-    } else {
-      console.log("user id not provided");
-    }
+  // io.on("connection", (socket) => {
+  //   const userId = socket.handshake.query.userId; // whenever we are making the connection we will send the userId from the frontend
+  //   if (userId) {
+  //     userSocketMap.set(userId, socket.id);
+  //     console.log(`user connected: ${userId} with socket Id: ${socket.id}`);
+  //   } else {
+  //     console.log("user id not provided");
+  //   }
 
-    // writing an event
-    socket.on("sendMessage", sendMessage);
-    socket.on("send-channel-message", sendchannelMessage);
-    socket.on("disconnect", () => disconnect(socket));
+  //   // writing an event
+  //   socket.on("sendMessage", sendMessage);
+  //   socket.on("send-channel-message", sendchannelMessage);
+  //   socket.on("disconnect", () => disconnect(socket));
+  // });
+
+  // Add this after your existing socket event handlers
+io.on("connection", (socket) => {
+  const userId = socket.handshake.query.userId;
+  if (userId) {
+    userSocketMap.set(userId, socket.id);
+    console.log(`user connected: ${userId} with socket Id: ${socket.id}`);
+  } else {
+    console.log("user id not provided");
+  }
+
+  socket.on("sendMessage", sendMessage);
+  socket.on("send-channel-message", sendchannelMessage);
+  
+  // 🆕 ADD THESE NEW EVENTS
+  socket.on("user-removed-from-channel", ({ channelId, removedUserId }) => {
+    const removedUserSocketId = userSocketMap.get(removedUserId);
+    if (removedUserSocketId) {
+      io.to(removedUserSocketId).emit("removed-from-channel", { channelId });
+    }
   });
+
+  socket.on("user-left-channel", ({ channelId, userId }) => {
+    // Notify all channel members that someone left
+    const userSocketId = userSocketMap.get(userId);
+    if (userSocketId) {
+      io.to(userSocketId).emit("left-channel", { channelId });
+    }
+  });
+
+  socket.on("disconnect", () => disconnect(socket));
+});
 };
 
 export default setupSocket;
