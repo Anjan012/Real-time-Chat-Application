@@ -69,6 +69,19 @@ export const SocketProvider = ({ children }) => {
         }
     }, [userInfo]);
 
+    useEffect(() => {
+  if (socket.current) {
+    socket.current.on("channel-deleted", ({ channelId }) => {
+      const { removeChannelById } = useAppStore.getState();
+      removeChannelById(channelId);
+    });
+
+    return () => {
+      socket.off("channel-deleted");
+    };
+  }
+}, [socket]);
+
     return (
         <SocketContext.Provider value={socket.current}>
             {children}

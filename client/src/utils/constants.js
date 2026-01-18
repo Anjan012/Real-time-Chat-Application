@@ -30,3 +30,4 @@ export const CREATE_CHANNEL_ROUTE = `${CHANNEL_ROUTES}/create-channel`;
 export const GET_USER_CHANNELS_ROUTES = `${CHANNEL_ROUTES}/get-user-channels`;
 export const GET_CHANNEL_MESSAGES = `${CHANNEL_ROUTES}/get-channel-messages`;
 export const GET_CHANNEL_MEMBERS_ROUTE = `${CHANNEL_ROUTES}`;
+export const DELETE_CHANNEL_ROUTE = `${CHANNEL_ROUTES}`;

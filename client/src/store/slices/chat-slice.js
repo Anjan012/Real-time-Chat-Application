@@ -31,7 +31,27 @@ export const chatSlice = (set, get) => ({
       membersPanelOpen: false,
     });
   }
+
+
+  
 },
+
+removeChannelFromList: (channelId) => {
+  const channels = get().channels.filter(
+    (channel) => channel._id !== channelId
+  );
+
+  set({ channels });
+
+  if (get().selectedChatData?._id === channelId) {
+    set({
+      selectedChatData: undefined,
+      selectedChatMessages: [],
+      selectedChatType: undefined,
+    });
+  }
+},
+
 
 
   setChannels: (channels) => set({ channels }),

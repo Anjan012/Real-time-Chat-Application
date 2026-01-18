@@ -3,11 +3,9 @@ import Message from "./models/MessagesModel.js";
 import Channel from "./models/ChannelModel.js";
 import ChaCipher from "./utils/ChaCipher.js";
 
-const cipher = new ChaCipher(process.env.ENCRYPTION_SECRET_KEY );
+const cipher = new ChaCipher(process.env.ENCRYPTION_SECRET_KEY);
 
 const setupSocket = (server) => {
-  // we will get the server from index.js
-  // defining the new socket io server
   const io = new SocketIoServer(server, {
     cors: {
       origin: process.env.ORIGIN,
@@ -16,14 +14,11 @@ const setupSocket = (server) => {
     },
   });
 
-  // Creates a Map to track which user is connected to which socket
   const userSocketMap = new Map();
 
   const disconnect = (socket) => {
     console.log(`client disconnected: ${socket.id}`);
-    // loops through all the entries in the map
     for (const [userId, socketId] of userSocketMap.entries()) {
-      // Find which userId has this socketId
       if (socketId === socket.id) {
         userSocketMap.delete(userId);
         break;
@@ -62,106 +57,106 @@ const setupSocket = (server) => {
   };
 
   const sendchannelMessage = async (message) => {
-    const { channelId, sender, content, messageType, file } = message;
+    try {
+      const { channelId, sender, content, messageType, file } = message;
 
-    let encryptedContent = content;
+      // ✅ CHECK IF CHANNEL EXISTS FIRST
+      const channel = await Channel.findById(channelId).populate("members");
 
-    if (messageType === "text" && content) {
-      encryptedContent = cipher.encrypt(content);
-    }
+      if (!channel) {
+        console.error(`Channel ${channelId} not found - possibly deleted`);
+        return; // Exit early if channel doesn't exist
+      }
 
-    const createdMessage = await Message.create({
-      sender,
-      recipient: null,
-      content: encryptedContent,
-      messageType,
-      timestamp: new Date(),
-      file,
-    });
+      let encryptedContent = content;
 
-    const messageData = await Message.findById(createdMessage._id).populate(
-      "sender",
-      "id email firstName lastName image color"
-    );
+      if (messageType === "text" && content) {
+        encryptedContent = cipher.encrypt(content);
+      }
 
-    await Channel.findByIdAndUpdate(channelId, {
-      $push: { messages: createdMessage._id },
-    });
-
-    const channel = await Channel.findById(channelId).populate("members");
-
-    const messageToSend = messageData.toObject();
-    if (messageToSend.messageType === "text" && messageToSend.content) {
-      messageToSend.content = cipher.decrypt(messageToSend.content);
-    }
-
-    const finalData = {
-      ...messageToSend,
-      channelId: channel._id,
-    };
-
-    if (channel && channel.members) {
-      channel.members.forEach((member) => {
-        const memberSocketId = userSocketMap.get(member._id.toString());
-        if (memberSocketId) {
-          io.to(memberSocketId).emit("receive-channel-message", finalData);
-        }
+      const createdMessage = await Message.create({
+        sender,
+        recipient: null,
+        content: encryptedContent,
+        messageType,
+        timestamp: new Date(),
+        file,
       });
 
-      const adminSocketId = userSocketMap.get(channel.admin._id.toString());
-      if (adminSocketId) {
-        io.to(adminSocketId).emit("receive-channel-message", finalData);
+      const messageData = await Message.findById(createdMessage._id).populate(
+        "sender",
+        "id email firstName lastName image color",
+      );
+
+      await Channel.findByIdAndUpdate(channelId, {
+        $push: { messages: createdMessage._id },
+      });
+
+      const messageToSend = messageData.toObject();
+      if (messageToSend.messageType === "text" && messageToSend.content) {
+        messageToSend.content = cipher.decrypt(messageToSend.content);
       }
+
+      const finalData = {
+        ...messageToSend,
+        channelId: channel._id,
+      };
+
+      if (channel && channel.members) {
+        channel.members.forEach((member) => {
+          const memberSocketId = userSocketMap.get(member._id.toString());
+          if (memberSocketId) {
+            io.to(memberSocketId).emit("receive-channel-message", finalData);
+          }
+        });
+
+        const adminSocketId = userSocketMap.get(channel.admin._id.toString());
+        if (adminSocketId) {
+          io.to(adminSocketId).emit("receive-channel-message", finalData);
+        }
+      }
+    } catch (error) {
+      console.error("Error in sendchannelMessage:", error);
     }
   };
 
-  // Creating the connection handler (main logic)
-  // io.on("connection", (socket) => {
-  //   const userId = socket.handshake.query.userId; // whenever we are making the connection we will send the userId from the frontend
-  //   if (userId) {
-  //     userSocketMap.set(userId, socket.id);
-  //     console.log(`user connected: ${userId} with socket Id: ${socket.id}`);
-  //   } else {
-  //     console.log("user id not provided");
-  //   }
-
-  //   // writing an event
-  //   socket.on("sendMessage", sendMessage);
-  //   socket.on("send-channel-message", sendchannelMessage);
-  //   socket.on("disconnect", () => disconnect(socket));
-  // });
-
-  // Add this after your existing socket event handlers
-io.on("connection", (socket) => {
-  const userId = socket.handshake.query.userId;
-  if (userId) {
-    userSocketMap.set(userId, socket.id);
-    console.log(`user connected: ${userId} with socket Id: ${socket.id}`);
-  } else {
-    console.log("user id not provided");
-  }
-
-  socket.on("sendMessage", sendMessage);
-  socket.on("send-channel-message", sendchannelMessage);
-  
-  // 🆕 ADD THESE NEW EVENTS
-  socket.on("user-removed-from-channel", ({ channelId, removedUserId }) => {
-    const removedUserSocketId = userSocketMap.get(removedUserId);
-    if (removedUserSocketId) {
-      io.to(removedUserSocketId).emit("removed-from-channel", { channelId });
+  io.on("connection", (socket) => {
+    const userId = socket.handshake.query.userId;
+    if (userId) {
+      userSocketMap.set(userId, socket.id);
+      console.log(`user connected: ${userId} with socket Id: ${socket.id}`);
+    } else {
+      console.log("user id not provided");
     }
-  });
 
-  socket.on("user-left-channel", ({ channelId, userId }) => {
-    // Notify all channel members that someone left
-    const userSocketId = userSocketMap.get(userId);
-    if (userSocketId) {
-      io.to(userSocketId).emit("left-channel", { channelId });
-    }
-  });
+    socket.on("sendMessage", sendMessage);
+    socket.on("send-channel-message", sendchannelMessage);
 
-  socket.on("disconnect", () => disconnect(socket));
-});
+    socket.on("user-removed-from-channel", ({ channelId, removedUserId }) => {
+      const removedUserSocketId = userSocketMap.get(removedUserId);
+      if (removedUserSocketId) {
+        io.to(removedUserSocketId).emit("removed-from-channel", { channelId });
+      }
+    });
+
+    socket.on("user-left-channel", ({ channelId, userId }) => {
+      const userSocketId = userSocketMap.get(userId);
+      if (userSocketId) {
+        io.to(userSocketId).emit("left-channel", { channelId });
+      }
+    });
+
+    socket.on("channel-deleted", ({ channelId }) => {
+      try {
+        socket.broadcast.emit("channel-deleted", { channelId });
+        console.log("Channel deleted broadcast:", channelId);
+      } catch (error) {
+        console.error("Error broadcasting channel deletion:", error);
+      }
+    });
+
+    socket.on("disconnect", () => disconnect(socket));
+  });
 };
 
 export default setupSocket;

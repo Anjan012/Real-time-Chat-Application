@@ -184,3 +184,33 @@ export const leaveChannel = async (req, res) => {
   }
 };
 
+export const deleteChannel = async (req, res) => {
+  try {
+    const { channelId } = req.params;
+    const requesterId = req.userId;
+
+    const channel = await Channel.findById(channelId);
+
+    if (!channel) {
+      return res.status(404).send("Channel not found");
+    }
+
+    if (channel.admin.toString() !== requesterId) {
+      return res.status(403).send("Only admin can delete channel");
+    }
+
+    // Delete the channel
+    await Channel.findByIdAndDelete(channelId);
+
+    return res.status(200).json({ 
+      success: true,
+      channelId 
+    });
+  } catch (error) {
+    console.error("Error deleting channel:", error);
+    return res.status(500).json({ 
+      error: "Internal Server Error",
+      message: error.message 
+    });
+  }
+};

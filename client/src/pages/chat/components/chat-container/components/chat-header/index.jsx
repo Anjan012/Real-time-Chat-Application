@@ -4,12 +4,14 @@ import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
 import { HOST } from "@/utils/constants";
 import { getColor } from "@/lib/utils";
 import { RiGroupLine } from "react-icons/ri";
+import DeleteChannelButton from "./DeleteChannelButton";
 
 
 const ChatHeader = () => {
 
   // for closing the chat 
-  const { closeChat, selectedChatData, selectedChatType, openMembersPanel } = useAppStore();
+  const { closeChat, selectedChatData, selectedChatType, openMembersPanel, userInfo } = useAppStore();
+  const isAdmin = selectedChatData?.admin?.toString() === userInfo?.id;
 
   return (
     <div className="h-[10vh] border-b-2 border-[2f303b] flex items-center justify-between px-20">
@@ -58,6 +60,12 @@ const ChatHeader = () => {
             <RiGroupLine className="text-2xl" />
           </button>
         )}
+
+        {
+          selectedChatType === "channel" && isAdmin && (
+            <DeleteChannelButton />
+          )
+        }
 
 
         <div className="flex items-center justify-center gap-5">

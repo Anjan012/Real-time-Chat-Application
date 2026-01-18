@@ -10,8 +10,8 @@ const LeaveButton = () => {
         userInfo,
         closeMembersPanel,
         closeChat,
-        removeChannelById, // 🆕 Add this
-        socket, // 🆕 Add this
+        removeChannelById, 
+        socket, 
     } = useAppStore();
 
     const handleLeave = async () => {
