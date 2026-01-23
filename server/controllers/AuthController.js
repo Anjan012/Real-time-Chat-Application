@@ -143,18 +143,22 @@ export const updateProfile = async (request, response, next) => {
 
 export const addProfileImage = async (request, response, next) => {
   try {
-    if(!request.file) {
+    if(!request.file) { // after multer middleware process it will  attach the file to the request object 
       return response.status(400).send("File is required.");
     }
 
-    const date = Date.now();
-    let fileName = "uploads/profiles/" + date + request.file.originalname;
-    renameSync(request.file.path, fileName);
+    const date = Date.now(); // returns the current date in milliseconds
+    let fileName = "uploads/profiles/" + date + request.file.originalname; // originalname is the name of the file uploaded by the user
+    renameSync(request.file.path, fileName); // it is sync -blocking function it renames the file from temp folder to our desired folder
 
-    const updatedUser = await User.findByIdAndUpdate(request.userId, {image:fileName}, {new:true, runValidators:true});
+    const updatedUser = await User.findByIdAndUpdate(
+      request.userId, 
+      {image:fileName}, 
+      {new:true, runValidators:true} // new: true tells mongodb query return the updated document
+    );
 
     return response.status(200).json({
-      image: updatedUser.image
+      image: updatedUser.image // Frontend will usually take this path and show the new profile picture.
     });
   } catch (error) {
     console.log(error);
@@ -164,7 +168,7 @@ export const addProfileImage = async (request, response, next) => {
 
 export const removeProfileImage = async (request, response, next) => {
   try {
-    const {userId} = request;
+    const {userId} = request; // we get the userId basically from the jwt middleware
     const user = await User.findById(userId);
 
     if(!user){
@@ -177,6 +181,7 @@ export const removeProfileImage = async (request, response, next) => {
 
     user.image = null;
     await user.save(); // saving the user without image .save() method to save the changes made to the user document in the database.it is the mongoose document method
+    // save() it updates only the changed fields and triggers any schema middleware/validators if they exist
 
 
     return response.status(200).send("Profile image removed successfully.");
