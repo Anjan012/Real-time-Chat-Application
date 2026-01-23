@@ -5,6 +5,7 @@ import { HOST } from "@/utils/constants";
 import { getColor } from "@/lib/utils";
 import { RiGroupLine } from "react-icons/ri";
 import DeleteChannelButton from "./DeleteChannelButton";
+import AddMembersButton from "./AddMemberButton";
 
 
 const ChatHeader = () => {
@@ -63,7 +64,10 @@ const ChatHeader = () => {
 
         {
           selectedChatType === "channel" && isAdmin && (
+            <>
+            <AddMembersButton />
             <DeleteChannelButton />
+            </>
           )
         }
 
