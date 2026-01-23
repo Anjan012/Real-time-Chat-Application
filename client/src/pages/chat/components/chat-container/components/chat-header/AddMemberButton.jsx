@@ -1,6 +1,5 @@
-import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
-import { FaUserPlus } from "react-icons/fa";
+import { RiUserAddLine } from "react-icons/ri";
 import {
     Dialog,
     DialogContent,
@@ -27,23 +26,15 @@ const AddMembersButton = () => {
             try {
                 setLoading(true);
                 
-                // Fetch all contacts
                 const response = await apiClient.get(GET_ALL_CONTACTS_ROUTE, {
                     withCredentials: true
                 });
 
-                console.log("All contacts:", response.data.contacts);
-                console.log("Current members:", channelMembers);
-
-                // Get current member IDs
                 const existingMemberIds = channelMembers.map(member => member._id);
-                
-                // Filter out existing members
                 const availableContacts = response.data.contacts.filter(
                     contact => !existingMemberIds.includes(contact.value)
                 );
 
-                console.log("Available contacts:", availableContacts);
                 setAllContacts(availableContacts);
                 
             } catch (error) {
@@ -67,7 +58,6 @@ const AddMembersButton = () => {
 
             setLoading(true);
 
-            // Add members one by one
             for (const contact of selectedContacts) {
                 await apiClient.post(
                     ADD_CHANNEL_MEMBER_ROUTE,
@@ -79,7 +69,6 @@ const AddMembersButton = () => {
                 );
             }
 
-            // Refresh member list
             const membersResponse = await apiClient.get(
                 `api/channel/${selectedChatData._id}/members`,
                 { withCredentials: true }
@@ -88,8 +77,6 @@ const AddMembersButton = () => {
             setChannelMembers(membersResponse.data.members);
             setSelectedContacts([]);
             setAddMemberModal(false);
-            
-            alert(`Successfully added ${selectedContacts.length} member(s)`);
             
         } catch (error) {
             console.error("Error adding members:", error);
@@ -101,23 +88,16 @@ const AddMembersButton = () => {
 
     return (
         <>
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger>
-                        <button
-                            className="text-xs bg-purple-700 p-2 rounded font-bold hover:bg-purple-800 flex items-center gap-2"
-                            onClick={() => setAddMemberModal(true)}
-                        >
-                            <FaUserPlus />
-                            Add Members
-                        </button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-[#1c1b1e] text-white border-none mb-2 p-3">
-                        Add members to this channel
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
+            {/* Icon Button */}
+            <button
+                onClick={() => setAddMemberModal(true)}
+                className="p-2 rounded-lg text-neutral-400 hover:text-purple-500 hover:bg-[#2a2b33] transition-all duration-200"
+                title="Add Members"
+            >
+                <RiUserAddLine className="text-xl" />
+            </button>
 
+            {/* Modal */}
             <Dialog open={addMemberModal} onOpenChange={setAddMemberModal}>
                 <DialogContent className="bg-[#181920] border-none text-white w-[400px] h-[350px] flex flex-col">
                     <DialogHeader>
