@@ -16,7 +16,6 @@ class ChaCipher {
   encrypt(message) {
     if (!message || typeof message !== "string") return message;
 
-    //Unicode → Base64 (emoji safe)
     const base64Message = Buffer.from(message, "utf8").toString("base64");
 
     let encrypted = "";
@@ -50,7 +49,6 @@ class ChaCipher {
         decryptedBase64 += String.fromCharCode(decoded);
       }
 
-      //Base64 → Unicode (emoji restored)
       return Buffer.from(decryptedBase64, "base64").toString("utf8");
     } catch {
       return encryptedMessage;
